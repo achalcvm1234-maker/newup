@@ -3,127 +3,541 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Persistent File & Folder Upload/Download</title>
+<title>Smart File Manager v5</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif;}
-  body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#6a11cb,#2575fc);}
-  .container{background:#fff;border-radius:15px;padding:40px 30px;width:100%;max-width:600px;text-align:center;box-shadow:0 15px 25px rgba(0,0,0,0.2);}
-  h1{margin-bottom:20px;color:#333;font-size:1.8rem;}
-  input[type="file"]{display:none;}
-  .buttons{display:flex;justify-content:center;gap:20px;margin-bottom:20px;flex-wrap:wrap;}
-  .btn-upload{padding:15px 25px;border-radius:10px;border:none;cursor:pointer;background:#6a11cb;color:#fff;font-size:1rem;transition:0.3s;}
-  .btn-upload:hover{background:#2575fc;}
-  .file-list{margin-top:20px;text-align:left;max-height:300px;overflow-y:auto;}
-  .file-list li{margin-bottom:10px;padding:10px;border-radius:5px;background:#f1f1f1;word-break:break-all;display:flex;justify-content:space-between;align-items:center;}
-  .file-actions button{margin-left:5px;padding:5px 10px;border:none;color:white;border-radius:5px;cursor:pointer;transition:0.3s;}
-  .file-actions .download-btn{background:#6a11cb;}
-  .file-actions .download-btn:hover{background:#2575fc;}
-  .file-actions .delete-btn{background:#ff4b5c;}
-  .file-actions .delete-btn:hover{background:#ff1f3d;}
-  @media(max-width:600px){.container{padding:30px 20px;}h1{font-size:1.5rem;}}
+/* Reset & Base */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  background: radial-gradient(circle at 50% 50%, #0f2027, #203a43, #2c5364);
+  color:#fff;
+  padding:40px 0;
+}
+
+/* Container */
+.container{
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(25px);
+  border-radius: 25px;
+  padding: 30px;
+  width:90%;
+  max-width:900px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
+  margin-bottom:40px;
+}
+
+/* Heading */
+h1{
+  text-align:center;
+  font-size:2.2rem;
+  margin-bottom:25px;
+  color: #00f0ff;
+  text-shadow: 0 0 10px #00f0ff;
+}
+
+/* Buttons */
+.buttons{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+.btn{
+  padding:12px 25px;
+  border:none;
+  border-radius:50px;
+  cursor:pointer;
+  font-weight:600;
+  font-size:14px;
+  position: relative;
+  overflow: hidden;
+  color:#fff;
+  background: linear-gradient(45deg,#ff00cc,#3333ff);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(255,255,255,0.2);
+}
+.btn:hover{
+  transform: scale(1.1);
+  box-shadow: 0 0 25px #ff00cc, 0 0 25px #3333ff;
+}
+
+/* Trash button */
+#openTrash{
+  background: linear-gradient(45deg,#ff7700,#ff0000);
+}
+
+/* Clear Trash button */
+#clearTrash{
+  background: linear-gradient(45deg,#ff5500,#ff2222);
+}
+
+/* Uploaded Files toggle button */
+#toggleFiles{
+  background: linear-gradient(45deg,#00ff77,#00ffaa);
+}
+
+/* Search Bar */
+.search{
+  width:100%;
+  padding:12px 18px;
+  border-radius:50px;
+  border:none;
+  margin-bottom:20px;
+  outline:none;
+  font-size:15px;
+  background: rgba(255,255,255,0.1);
+  color:#fff;
+  box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
+}
+
+/* Sort Buttons */
+.sort-buttons{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:15px;
+}
+.sort-btn{
+  padding:7px 14px;
+  border:none;
+  border-radius:50px;
+  cursor:pointer;
+  background: rgba(255,255,255,0.05);
+  color:#fff;
+  font-size:13px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px rgba(255,255,255,0.1);
+}
+.sort-btn:hover{
+  transform: scale(1.05);
+  background: rgba(255,255,255,0.15);
+}
+
+/* File List */
+.file-list{
+  max-height:500px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+.file-list li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background: rgba(255,255,255,0.05);
+  padding:12px 15px;
+  border-radius:15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+}
+.file-list li:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  border-left: 4px solid #00f0ff;
+}
+
+/* File Info */
+.file-info{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.file-name{
+  font-size:15px;
+  font-weight:500;
+}
+.file-size{
+  font-size:13px;
+  opacity:0.6;
+}
+
+/* Thumbnail */
+.thumbnail{
+  width:50px;
+  height:50px;
+  object-fit:cover;
+  border-radius:8px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* File Actions */
+.file-actions{
+  display:flex;
+  gap:10px;
+}
+.file-actions button{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.file-actions button.download{
+  background: linear-gradient(45deg,#00fffc,#0072ff);
+  color:#fff;
+}
+.file-actions button.delete{
+  background: linear-gradient(45deg,#ff0066,#ff0000);
+  color:#fff;
+}
+.file-actions button.restore{
+  background: linear-gradient(45deg,#00ff66,#00ff00);
+  color:#fff;
+}
+.file-actions button:hover{
+  transform: scale(1.2) rotate(10deg);
+  box-shadow: 0 0 15px rgba(0,255,255,0.5);
+}
+
+/* Tooltips */
+.file-actions button::after{
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  padding:5px 8px;
+  border-radius:5px;
+  font-size:12px;
+  opacity:0;
+  pointer-events:none;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+.file-actions button:hover::after{
+  opacity:1;
+}
+
+/* Empty */
+.empty{
+  text-align:center;
+  font-style:italic;
+  font-size:14px;
+  margin-top:20px;
+  opacity:0.6;
+}
+
+/* Drag & Drop */
+.drag-over{
+  border:2px dashed #00f0ff !important;
+  opacity:0.9 !important;
+}
+
+/* Trash container */
+#trashContainer{
+  display:none;
+}
+
+/* Initially hide uploaded file list */
+#fileList, #emptyMsg{
+  display: none;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Upload Files or Folder</h1>
+  <h1>📁 Smart File Manager</h1>
+
   <div class="buttons">
-    <label class="btn-upload">
-      Upload Files
-      <input type="file" id="fileInput" multiple>
-    </label>
-    <label class="btn-upload">
-      Upload Folder
-      <input type="file" id="folderInput" webkitdirectory directory multiple>
-    </label>
+    <label class="btn">Upload Files<input type="file" id="fileInput" multiple></label>
+    <label class="btn">Upload Folder<input type="file" id="folderInput" webkitdirectory multiple></label>
+    <button class="btn" id="toggleFiles">📂 Uploaded Files</button>
+    <button class="btn" id="openTrash">🗑 Trash</button>
+    <button class="btn" id="clearTrash">🧹 Clear Trash</button>
   </div>
-  <ul class="file-list" id="fileList"></ul>
+
+  <input type="text" id="search" class="search" placeholder="🔍 Search files...">
+
+  <div class="sort-buttons">
+    <button class="sort-btn" data-sort="name">Sort by Name</button>
+    <button class="sort-btn" data-sort="size">Sort by Size</button>
+    <button class="sort-btn" data-sort="date">Sort by Date</button>
+  </div>
+
+  <ul id="fileList" class="file-list"></ul>
+  <div id="emptyMsg" class="empty">No files uploaded yet</div>
+
+  <!-- Trash -->
+  <div id="trashContainer">
+    <h2 style="text-align:center;margin:15px 0;color:#ff7700;text-shadow:0 0 10px #ff7700;">🗑 Trash Bin</h2>
+    <ul id="trashList" class="file-list"></ul>
+    <div id="emptyTrash" class="empty">Trash is empty</div>
+  </div>
 </div>
 
 <script>
 // IndexedDB setup
 let db;
-const request = indexedDB.open('fileDB', 1);
-request.onupgradeneeded = e => {
-  db = e.target.result;
-  db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+const request = indexedDB.open('fileDBv5',1);
+request.onupgradeneeded = e=>{
+  db=e.target.result;
+  if(!db.objectStoreNames.contains('files')){
+    const store = db.createObjectStore('files',{keyPath:'id',autoIncrement:true});
+    store.createIndex('name','name',{unique:false});
+    store.createIndex('size','size',{unique:false});
+    store.createIndex('date','date',{unique:false});
+  }
+  if(!db.objectStoreNames.contains('trash')){
+    const trashStore = db.createObjectStore('trash',{keyPath:'id',autoIncrement:true});
+    trashStore.createIndex('name','name',{unique:false});
+  }
 };
-request.onsuccess = e => {
-  db = e.target.result;
-  loadFiles();
-};
-request.onerror = e => console.error('IndexedDB error', e);
+request.onsuccess = e=>{db=e.target.result;};
 
-const fileInput = document.getElementById('fileInput');
-const folderInput = document.getElementById('folderInput');
-const fileList = document.getElementById('fileList');
+// DOM Elements
+const fileInput=document.getElementById('fileInput');
+const folderInput=document.getElementById('folderInput');
+const fileList=document.getElementById('fileList');
+const trashList=document.getElementById('trashList');
+const search=document.getElementById('search');
+const emptyMsg=document.getElementById('emptyMsg');
+const emptyTrash=document.getElementById('emptyTrash');
+const trashContainer=document.getElementById('trashContainer');
+const openTrash=document.getElementById('openTrash');
+const toggleFilesBtn=document.getElementById('toggleFiles');
+const clearTrashBtn=document.getElementById('clearTrash');
+let currentSort="name";
+let trashVisible=false;
+let filesVisible=false;
 
-// Add files to IndexedDB
-function addFilesToDB(files) {
-  const tx = db.transaction('files', 'readwrite');
-  const store = tx.objectStore('files');
-  files.forEach(f => store.add({ name: f.webkitRelativePath || f.name, file: f }));
-  tx.oncomplete = () => loadFiles();
+// File size formatting
+function formatSize(bytes){
+  if(bytes<1024) return bytes+" B";
+  else if(bytes<1024*1024) return (bytes/1024).toFixed(1)+" KB";
+  else if(bytes<1024*1024*1024) return (bytes/1024/1024).toFixed(1)+" MB";
+  return (bytes/1024/1024/1024).toFixed(1)+" GB";
 }
 
-// Load files from DB
-function loadFiles() {
-  fileList.innerHTML = '';
-  const tx = db.transaction('files', 'readonly');
-  const store = tx.objectStore('files');
-  store.openCursor().onsuccess = e => {
-    const cursor = e.target.result;
+// Add files
+function addFilesToDB(files){
+  const tx=db.transaction('files','readwrite');
+  const store=tx.objectStore('files');
+  const now=new Date();
+  files.forEach(f=>{
+    store.add({name:f.webkitRelativePath||f.name,file:f,size:f.size,date:now.getTime()});
+  });
+  tx.oncomplete=()=>{ if(filesVisible) loadFiles(search.value); };
+}
+
+// Load files
+function loadFiles(filter=""){
+  fileList.innerHTML="";
+  let hasFiles=false;
+  const tx=db.transaction('files','readonly');
+  const store=tx.objectStore('files');
+  const filesArray=[];
+  store.openCursor().onsuccess=e=>{
+    const cursor=e.target.result;
     if(cursor){
-      const {id, name, file} = cursor.value;
-      const li = document.createElement('li');
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = name;
-
-      const actionsDiv = document.createElement('div');
-      actionsDiv.classList.add('file-actions');
-
-      const downloadBtn = document.createElement('button');
-      downloadBtn.textContent = 'Download';
-      downloadBtn.classList.add('download-btn');
-      downloadBtn.addEventListener('click', () => downloadFile(file));
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.classList.add('delete-btn');
-      deleteBtn.addEventListener('click', () => deleteFile(id));
-
-      actionsDiv.appendChild(downloadBtn);
-      actionsDiv.appendChild(deleteBtn);
-
-      li.appendChild(nameSpan);
-      li.appendChild(actionsDiv);
-      fileList.appendChild(li);
+      const {id,name,file,size,date}=cursor.value;
+      if(name.toLowerCase().includes(filter.toLowerCase())){
+        hasFiles=true;
+        filesArray.push({id,name,file,size,date});
+      }
       cursor.continue();
+    }else{
+      filesArray.sort((a,b)=>{
+        if(currentSort==="name") return a.name.localeCompare(b.name);
+        else if(currentSort==="size") return a.size-b.size;
+        else return a.date-b.date;
+      });
+      filesArray.forEach(f=>{
+        const li=document.createElement('li');
+        const info=document.createElement('div');
+        info.className="file-info";
+        if(f.file.type.startsWith("image/")){
+          const img=document.createElement('img');
+          img.src=URL.createObjectURL(f.file);
+          img.className="thumbnail";
+          info.appendChild(img);
+        }
+        const textDiv=document.createElement('div');
+        textDiv.innerHTML=`<span class="file-name">${f.name}</span><span class="file-size">${formatSize(f.size)}</span>`;
+        info.appendChild(textDiv);
+
+        const actions=document.createElement('div');
+        actions.className="file-actions";
+
+        const dBtn=document.createElement('button');
+        dBtn.className="download";
+        dBtn.innerHTML="⬇";
+        dBtn.setAttribute("data-tooltip","Download File");
+        dBtn.onclick=()=>downloadFile(f.file);
+
+        const delBtn=document.createElement('button');
+        delBtn.className="delete";
+        delBtn.innerHTML="✖";
+        delBtn.setAttribute("data-tooltip","Delete File");
+        delBtn.onclick=()=>{if(confirm(`Move "${f.name}" to trash?`)) moveToTrash(f.id);};
+
+        actions.appendChild(dBtn);
+        actions.appendChild(delBtn);
+
+        li.appendChild(info);
+        li.appendChild(actions);
+        fileList.appendChild(li);
+      });
+      emptyMsg.style.display = hasFiles?"none":"block";
     }
   };
 }
 
-// Download file
-function downloadFile(file) {
-  const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = file.name;
+// Download
+function downloadFile(file){
+  const url=URL.createObjectURL(file);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=file.name;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// Delete file from DB
-function deleteFile(id) {
-  const tx = db.transaction('files', 'readwrite');
-  tx.objectStore('files').delete(id);
-  tx.oncomplete = () => loadFiles();
+// Move to Trash
+function moveToTrash(id){
+  const tx=db.transaction(['files','trash'],'readwrite');
+  const fileStore=tx.objectStore('files');
+  const trashStore=tx.objectStore('trash');
+
+  fileStore.get(id).onsuccess=e=>{
+    const data=e.target.result;
+    trashStore.add(data);
+    fileStore.delete(id);
+  };
+  tx.oncomplete=()=>{ if(filesVisible) loadFiles(search.value); if(trashVisible) loadTrash(); };
 }
 
-// Event listeners
-fileInput.addEventListener('change', e => addFilesToDB(Array.from(e.target.files)));
-folderInput.addEventListener('change', e => addFilesToDB(Array.from(e.target.files)));
+// Load Trash
+function loadTrash(){
+  trashList.innerHTML="";
+  let hasTrash=false;
+  const tx=db.transaction('trash','readonly');
+  const store=tx.objectStore('trash');
+  store.openCursor().onsuccess=e=>{
+    const cursor=e.target.result;
+    if(cursor){
+      const {id,name,file,size,date}=cursor.value;
+      hasTrash=true;
+      const li=document.createElement('li');
+      const info=document.createElement('div');
+      info.className="file-info";
+      if(file.type.startsWith("image/")){
+        const img=document.createElement('img');
+        img.src=URL.createObjectURL(file);
+        img.className="thumbnail";
+        info.appendChild(img);
+      }
+      const textDiv=document.createElement('div');
+      textDiv.innerHTML=`<span class="file-name">${name}</span><span class="file-size">${formatSize(size)}</span>`;
+      info.appendChild(textDiv);
 
+      const actions=document.createElement('div');
+      actions.className="file-actions";
+      const restoreBtn=document.createElement('button');
+      restoreBtn.className="restore";
+      restoreBtn.innerHTML="↩";
+      restoreBtn.setAttribute("data-tooltip","Restore File");
+      restoreBtn.onclick=()=>restoreFile(id);
+
+      const delBtn=document.createElement('button');
+      delBtn.className="delete";
+      delBtn.innerHTML="✖";
+      delBtn.setAttribute("data-tooltip","Delete Permanently");
+      delBtn.onclick=()=>{if(confirm(`Delete "${name}" permanently?`)) deletePermanent(id);};
+
+      actions.appendChild(restoreBtn);
+      actions.appendChild(delBtn);
+
+      li.appendChild(info);
+      li.appendChild(actions);
+      trashList.appendChild(li);
+
+      cursor.continue();
+    }else{
+      emptyTrash.style.display=hasTrash?"none":"block";
+    }
+  };
+}
+
+// Restore
+function restoreFile(id){
+  const tx=db.transaction(['files','trash'],'readwrite');
+  const trashStore=tx.objectStore('trash');
+  const fileStore=tx.objectStore('files');
+  trashStore.get(id).onsuccess=e=>{
+    const data=e.target.result;
+    fileStore.add(data);
+    trashStore.delete(id);
+  };
+  tx.oncomplete=()=>{ if(filesVisible) loadFiles(search.value); if(trashVisible) loadTrash(); };
+}
+
+// Delete permanently
+function deletePermanent(id){
+  const tx=db.transaction('trash','readwrite');
+  tx.objectStore('trash').delete(id);
+  tx.oncomplete=()=>loadTrash();
+}
+
+// Clear Trash
+function clearAllTrash(){
+  if(confirm("Are you sure you want to permanently delete all trash files?")){
+    const tx=db.transaction('trash','readwrite');
+    const store=tx.objectStore('trash');
+    store.clear();
+    tx.oncomplete=()=>loadTrash();
+  }
+}
+
+// Event Listeners
+fileInput.onchange=e=>addFilesToDB([...e.target.files]);
+folderInput.onchange=e=>addFilesToDB([...e.target.files]);
+search.addEventListener('input',e=>{ if(filesVisible) loadFiles(e.target.value); });
+document.querySelectorAll('.sort-btn').forEach(btn=>btn.addEventListener('click',()=>{currentSort=btn.dataset.sort; if(filesVisible) loadFiles(search.value);}));
+
+// Drag & Drop
+document.querySelector('.container').addEventListener('dragover',e=>{e.preventDefault(); e.currentTarget.classList.add('drag-over');});
+document.querySelector('.container').addEventListener('dragleave',e=>{e.preventDefault(); e.currentTarget.classList.remove('drag-over');});
+document.querySelector('.container').addEventListener('drop',e=>{e.preventDefault(); e.currentTarget.classList.remove('drag-over'); if(e.dataTransfer.files.length>0) addFilesToDB([...e.dataTransfer.files]);});
+
+// Uploaded Files toggle
+toggleFilesBtn.addEventListener('click',()=>{
+  filesVisible = !filesVisible;
+  fileList.style.display = filesVisible?"flex":"none";
+  emptyMsg.style.display = (filesVisible && fileList.children.length===0)?"block":"none";
+  if(filesVisible && trashVisible){
+    trashVisible=false;
+    trashContainer.style.display="none";
+  }
+  if(filesVisible) loadFiles(search.value);
+});
+
+// Trash toggle
+openTrash.addEventListener('click',()=>{
+  trashVisible=!trashVisible;
+  trashContainer.style.display=trashVisible?"block":"none";
+  if(trashVisible && filesVisible){
+    filesVisible=false;
+    fileList.style.display="none";
+    emptyMsg.style.display="none";
+  }
+  if(trashVisible) loadTrash();
+});
+
+// Clear Trash button
+clearTrashBtn.addEventListener('click',clearAllTrash);
 </script>
 </body>
 </html>
